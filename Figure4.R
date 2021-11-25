@@ -2,7 +2,7 @@
 rm(list = ls())
 
 ## working dir
-setwd ("E:/microarray/onlinecode")
+setwd ("E:/")
 
 ## import data
 plasma <- read.csv("./plasma.csv", sep=",")

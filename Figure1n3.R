@@ -2,7 +2,7 @@
 rm(list = ls())
 
 ## working dir
-setwd("E:/microarray/onlinecode")
+setwd("E:/")
 
 ## load normalized gene expression profiles
 asthma <- load(file="./ACT.rda")
