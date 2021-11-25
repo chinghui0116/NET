@@ -1,7 +1,7 @@
 ## clean working space
 rm(list = ls())
 ## working dir
-setwd("E:/microarray/onlinecode")
+setwd("E:/")
 
 library("DESeq2")
 library("ggplot2")
@@ -482,4 +482,116 @@ ggplot(ICS2, aes(x=F1P, y= CCL4L2)) +
 
 
 
+#################
+##   ROC 
+##################
+## import 
+library(xlsx)
+group123 <- read.xlsx("./group123.xlsx", sheetName = "all")
+
+group123$F1P_2[which(group123$F1P =="R")] <- 0
+group123$F1P_2[which(group123$F1P =="NR")] <- 1
+
+# NEUseq(groupA)
+NEUseq <- subset(group123, group=="A")
+card_glm <- glm(formula = F1P_2 ~ CCL4L2 , family = "binomial", data = NEUseq)
+summary(card_glm)
+resultNEUseq <- predict(card_glm, type = "response")
+library(dplyr)
+roc_NEUseq <- data.frame(cbind(resultNEUseq, NEUseq$F1P_2))
+roc_NEUseq$group <- "ANEUseq"
+colnames(roc_NEUseq) <- c("result","response","group")
+
+
+# Bloodseq(groupB)
+Bloodseq <- subset(group123, group=="B")
+card_glm <- glm(formula = F1P_2 ~ CCL4L2 , family = "binomial", data = Bloodseq)
+summary(card_glm)
+resultBloodseq <- predict(card_glm, type = "response")
+library(dplyr)
+roc_Bloodseq <- data.frame(cbind(resultBloodseq, Bloodseq$F1P_2))
+roc_Bloodseq$group <- "Bloodseq"
+colnames(roc_Bloodseq) <- c("result","response","group")
+
+
+# CAMP(groupC)
+CAMP <- subset(group123, group=="C")
+card_glm <- glm(formula = F1P_2 ~ CCL4L2 , family = "binomial", data = CAMP)
+summary(card_glm)
+resultCAMP <- predict(card_glm, type = "response")
+library(dplyr)
+CAMP2 <- na.omit(dplyr::select(CAMP,F1P_2,CCL4L2))
+roc_CAMP <- data.frame(cbind(resultCAMP, CAMP2$F1P_2))
+roc_CAMP$group <- "CAMP"
+colnames(roc_CAMP) <- c("result","response","group")
+
+roc <- rbind(roc_NEUseq,roc_Bloodseq,roc_CAMP)
+
+### plot ROC curve
+library(ggplot2)
+#install.packages("plotROC")
+library(plotROC)
+#roc$response[which(roc$response =="2")] <- 0
+basicplot <- ggplot(roc, aes(d = response, m = result, color = group)) + 
+  geom_roc(n.cuts = 0)+
+  style_roc(xlab="1 - Specificity", ylab="Sensitivity",
+            theme=theme_classic )+
+  theme(axis.text.x = element_text(size=18,colour="black"),
+        axis.text.y = element_text(size=18,colour="black"))+
+  theme(axis.title.x =element_text(face="bold",size=24,colour="black"))+ #X sixe
+  theme(axis.title.y =element_text(face="bold",size=24,colour="black"))+ #Y size
+  labs(title="")
+basicplot
+#ggsave("./ROC_CCL4L2.tiff", width=10, height=6.98) #save plot
+
+
+#####
+# ROC - 11 genes 
+#####
+# NEUseq(groupA)
+card_glm <- glm(formula = F1P_2 ~ ATG2B+CCL4L2+DDX1+HIP1+IL1RL1+NR4A1+RALGDS+SEC24A+SPNS3+THAP4+ZNF208 , family = "binomial", data = NEUseq)
+summary(card_glm)
+resultNEUseq <- predict(card_glm, type = "response")
+library(dplyr)
+roc_NEUseq <- data.frame(cbind(resultNEUseq, NEUseq$F1P_2))
+roc_NEUseq$group <- "ANEUseq"
+colnames(roc_NEUseq) <- c("result","response","group")
+
+# Bloodseq(groupB)
+card_glm <- glm(formula = F1P_2 ~ ATG2B+CCL4L2+DDX1+HIP1+IL1RL1+NR4A1+RALGDS+SEC24A+SPNS3+THAP4+ZNF208 , family = "binomial", data = Bloodseq)
+summary(card_glm)
+resultBloodseq <- predict(card_glm, type = "response")
+library(dplyr)
+roc_Bloodseq <- data.frame(cbind(resultBloodseq, Bloodseq$F1P_2))
+roc_Bloodseq$group <- "Bloodseq"
+colnames(roc_Bloodseq) <- c("result","response","group")
+
+# CAMP(groupC)
+card_glm <- glm(formula = F1P_2 ~ ATG2B+CCL4L2+DDX1+HIP1+IL1RL1+NR4A1+RALGDS+SEC24A+SPNS3+THAP4+ZNF208 , family = "binomial", data = CAMP)
+summary(card_glm)
+resultCAMP <- predict(card_glm, type = "response")
+library(dplyr)
+CAMP2 <- na.omit(dplyr::select(CAMP,F1P_2,CCL4L2))
+roc_CAMP <- data.frame(cbind(resultCAMP, CAMP2$F1P_2))
+roc_CAMP$group <- "CAMP"
+colnames(roc_CAMP) <- c("result","response","group")
+
+roc <- rbind(roc_NEUseq,roc_Bloodseq,roc_CAMP)
+
+### plot ROC curve
+library(ggplot2)
+#install.packages("plotROC")
+library(plotROC)
+#roc$response[which(roc$response =="2")] <- 0
+basicplot <- ggplot(roc, aes(d = response, m = result, color = group)) + 
+  geom_roc(n.cuts = 0)+
+  style_roc(xlab="1 - Specificity", ylab="Sensitivity",
+            theme=theme_classic )+
+  theme(axis.text.x = element_text(size=18,colour="black"),
+        axis.text.y = element_text(size=18,colour="black"))+
+  theme(axis.title.x =element_text(face="bold",size=24,colour="black"))+ #X sixe
+  theme(axis.title.y =element_text(face="bold",size=24,colour="black"))+ #Y size
+  labs(title="")
+basicplot
+#ggsave("./ROC_11genes.tiff", width=10, height=6.98) #save plot
 
